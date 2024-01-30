@@ -1,0 +1,12 @@
+palettes:
+  - name: global_palette
+    fixed-entries:
+      - color: {index: 0, r: 83, g: 83, b: 83}
+    images: automatic
+
+outputs:
+  - type: c
+    include-file: gfx.h
+    palettes:
+      - global_palette
+
