@@ -7,9 +7,9 @@ Section          Base   Top    High   Length
 .init.reruncheck D1A952 D1A952             0h
 .init            D1A952 D1A97E            2Ch
 .fini            D1A97E D1A9B2            34h
-.text            D1A9B2 D1B050           69Eh
-.data            D1B050 D1B05C             Ch
-.rodata          D1B05C D1B07E            22h
+.text            D1A9B2 D1B05C           6AAh
+.data            D1B05C D1B068             Ch
+.rodata          D1B068 D1B08A            22h
 .init_array      000000 000000             0h
 .ctors           000000 000000             0h
 .dtors           000000 000000             0h
@@ -51,10 +51,10 @@ _os_DisableHomeTextBuffer  = D1AB43
 _os_EnableHomeTextBuffer   = D1AB55
 ___sleep_common.3          = D1AB69
 _clock                     = D1AB82
-.missingappvar             = D1B05C
-.libloadname               = D1B061
+.missingappvar             = D1B068
+.libloadname               = D1B06D
 .libloadnamelen            = 000007
-.webaddress                = D1B069
+.webaddress                = D1B075
 ___init_clock              = D1A937
 __start                    = D1A952
 ___exithl                  = D1A97E
@@ -65,10 +65,10 @@ _exit.sp                   = D1A97F
 _exit.flash_wait_states    = D1A989
 _main                      = D1AB8D
 _step                      = D1ABCA
-_draw                      = D1AE04
-_play                      = D1AE8E
-_selector                  = D1B050
-_global_palette            = D1B056
+_draw                      = D1AE10
+_play                      = D1AE9A
+_selector                  = D1B05C
+_global_palette            = D1B062
 _increment2                = D052C6
 _increment                 = D052C9
 _step.prev_key_left        = D052CC

@@ -59,12 +59,12 @@ _step:
 	inc	b
 	call	__bshru
 	and	a, 1
-	ld	(ix - 3), a
+	ld	(ix - 6), a
 	ld	l, (iy)
 	ld	h, (iy + 1)
 	ld	a, l
 	and	a, 1
-	ld	iyh, a
+	ld	(ix - 3), a
 	ld	hl, -720868
 	push	de
 	ld	e, (hl)
@@ -77,19 +77,17 @@ _step:
 	call	__sand
 	ld	a, l
 	or	a, a
-	jp	nz, BB1_24
-	ld	(ix - 6), hl
+	jp	nz, BB1_26
+	ld	(ix - 9), hl
 	ld	a, (_step.prev_key_left)
 	bit	0, e
-	ld	c, e
+	ld	iyh, e
 	jr	z, BB1_4
 	or	a, a
 	jr	nz, BB1_4
 	ld	hl, (_selector)
-	ld	a, c
 	ld	bc, -4
 	add	hl, bc
-	ld	c, a
 	ld	(_selector), hl
 BB1_4:
 	ld	a, (_step.prev_key_right)
@@ -99,49 +97,40 @@ BB1_4:
 	or	a, a
 	jr	nz, BB1_7
 	ld	hl, (_selector)
-	ld	a, c
 	ld	bc, 4
 	add	hl, bc
-	ld	c, a
 	ld	(_selector), hl
 BB1_7:
 	ld	a, (_step.prev_key_up)
-	ld	d, (ix - 3)
+	ld	d, (ix - 6)
 	bit	0, d
 	jr	z, BB1_10
 	or	a, a
 	jr	nz, BB1_10
 	ld	hl, (_selector+3)
-	ld	a, c
 	ld	bc, -4
 	add	hl, bc
-	ld	c, a
 	ld	(_selector+3), hl
 BB1_10:
 	ld	a, (_step.prev_key_down)
-	ex	de, hl
-	ld	e, iyh
-	ex	de, hl
+	ld	l, (ix - 3)
 	bit	0, l
 	jr	z, BB1_13
 	or	a, a
 	jr	nz, BB1_13
 	ld	hl, (_selector+3)
-	ld	a, c
 	ld	bc, 4
 	add	hl, bc
-	ld	c, a
 	ld	(_selector+3), hl
+	ld	l, (ix - 3)
 BB1_13:
-	ld	hl, _screen
-	ld	(ix - 9), hl
-	ld	a, c
+	ld	a, iyh
 	ld	(_step.prev_key_left), a
 	ld	a, e
 	ld	(_step.prev_key_right), a
 	ld	a, d
 	ld	(_step.prev_key_up), a
-	ld	a, iyh
+	ld	a, l
 	ld	(_step.prev_key_down), a
 	ld	hl, -720878
 	push	de
@@ -153,7 +142,10 @@ BB1_13:
 	pop	de
 	ld	a, l
 	bit	7, a
-	jr	z, BB1_15
+	jr	nz, BB1_15
+	ld	iy, (_increment)
+	jr	BB1_16
+BB1_15:
 	ld	hl, (_selector+3)
 	ld	bc, 4
 	call	__idivs
@@ -186,7 +178,7 @@ BB1_13:
 	ldir
 	inc	iy
 	ld	(_increment), iy
-BB1_15:
+BB1_16:
 	ld.sis	bc, 1
 	ld	hl, -720878
 	push	de
@@ -198,11 +190,17 @@ BB1_15:
 	pop	de
 	ld	a, l
 	bit	6, a
-	jr	z, BB1_17
-	ld	hl, (_increment)
-	dec	hl
-	ld	(_increment), hl
+	jr	z, BB1_19
+	ld	de, 1
+	lea	hl, iy
+	or	a, a
+	sbc	hl, de
+	call	pe, __setflag
+	jp	m, BB1_19
+	dec	iy
+	ld	(_increment), iy
 	ld	bc, 6
+	lea	hl, iy
 	call	__imulu
 	push	hl
 	pop	de
@@ -228,7 +226,7 @@ BB1_15:
 	lea	de, iy
 	add	hl, de
 	ld	(hl), b
-BB1_17:
+BB1_19:
 	ld	hl, -720868
 	push	de
 	ld	e, (hl)
@@ -239,59 +237,57 @@ BB1_17:
 	pop	de
 	call	__sand
 	bit	0, l
-	ld	hl, (ix - 6)
-	jr	z, BB1_24
+	ld	hl, (ix - 9)
+	jr	z, BB1_26
 	call	_play
-	ld	bc, 60
+	ld	iy, 60
 	ld	de, 0
 	push	de
-	pop	iy
-	lea	hl, iy
-BB1_19:
-	ld	(ix - 3), hl
+	pop	hl
+	ld	bc, _screen
+	ld	(ix - 3), bc
+	lea	bc, iy
+BB1_21:
+	ld	(ix - 6), hl
 	or	a, a
 	sbc	hl, bc
-	lea	bc, iy
-	jr	z, BB1_23
-BB1_20:
+	push	de
+	pop	bc
+	jr	z, BB1_25
+BB1_22:
 	push	bc
 	pop	hl
 	ld	de, 80
 	or	a, a
 	sbc	hl, de
-	jr	z, BB1_22
-	ld	iy, (ix - 9)
+	jr	z, BB1_24
+	ld	iy, (ix - 3)
 	add	iy, bc
 	ld	(iy), 0
-	ld	de, 0
-	push	de
-	pop	iy
 	inc	bc
-	jr	BB1_20
-BB1_22:
-	ld	hl, (ix - 3)
-	inc	hl
-	lea	de, iy
-	ld	iy, (ix - 9)
-	lea	iy, iy + 80
-	ld	(ix - 9), iy
-	push	de
-	pop	iy
-	ld	bc, 60
-	jr	BB1_19
-BB1_23:
-	ld	(_increment), iy
-	ld	(_increment2), iy
-	ld	hl, (ix - 6)
+	jr	BB1_22
 BB1_24:
+	ld	hl, (ix - 6)
+	inc	hl
+	ld	iy, (ix - 3)
+	lea	iy, iy + 80
+	ld	(ix - 3), iy
+	ld	bc, 60
+	ld	de, 0
+	jr	BB1_21
+BB1_25:
+	ld	(_increment), de
+	ld	(_increment2), de
+	ld	hl, (ix - 9)
+BB1_26:
 	ld	a, l
 	or	a, a
-	jr	z, BB1_26
+	jr	z, BB1_28
 	ld	a, 0
-	jr	BB1_27
-BB1_26:
+	jr	BB1_29
+BB1_28:
 	ld	a, -1
-BB1_27:
+BB1_29:
 	ld	sp, ix
 	pop	ix
 	ret
