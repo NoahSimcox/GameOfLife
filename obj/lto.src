@@ -3,11 +3,21 @@
 	section	.text,"ax",@progbits
 	public	_main
 _main:
-	call	_begin
 	call	_gfx_Begin
 	ld	hl, 1
 	push	hl
 	call	_gfx_SetDraw
+	pop	hl
+	or	a, a
+	sbc	hl, hl
+	push	hl
+	ld	hl, 6
+	push	hl
+	ld	hl, _global_palette
+	push	hl
+	call	_gfx_SetPalette
+	pop	hl
+	pop	hl
 	pop	hl
 BB0_1:
 	call	_step
@@ -18,23 +28,618 @@ BB0_1:
 	jr	BB0_1
 BB0_3:
 	call	_gfx_End
-	jp	_end
+	or	a, a
+	sbc	hl, hl
+	ret
 	section	.text,"ax",@progbits
+
+	section	.text,"ax",@progbits
+	public	_step
+_step:
+	ld	hl, -9
+	call	__frameset
+	call	_kb_Scan
+	ld	iy, -720866
+	ld	l, (iy)
+	ld	h, (iy + 1)
+	ld	a, l
+	srl	a
+	and	a, 1
+	ld	e, a
+	ld	l, (iy)
+	ld	h, (iy + 1)
+	ld	a, l
+	ld	b, 2
+	call	__bshru
+	and	a, 1
+	ld	d, a
+	ld	l, (iy)
+	ld	h, (iy + 1)
+	ld	a, l
+	inc	b
+	call	__bshru
+	and	a, 1
+	ld	(ix - 3), a
+	ld	l, (iy)
+	ld	h, (iy + 1)
+	ld	a, l
+	and	a, 1
+	ld	iyh, a
+	ld	hl, -720868
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	pop	de
+	ld.sis	bc, 64
+	call	__sand
+	ld	a, l
+	or	a, a
+	jp	nz, BB1_24
+	ld	(ix - 6), hl
+	ld	a, (_step.prev_key_left)
+	bit	0, e
+	ld	c, e
+	jr	z, BB1_4
+	or	a, a
+	jr	nz, BB1_4
+	ld	hl, (_selector)
+	ld	a, c
+	ld	bc, -4
+	add	hl, bc
+	ld	c, a
+	ld	(_selector), hl
+BB1_4:
+	ld	a, (_step.prev_key_right)
+	ld	e, d
+	bit	0, e
+	jr	z, BB1_7
+	or	a, a
+	jr	nz, BB1_7
+	ld	hl, (_selector)
+	ld	a, c
+	ld	bc, 4
+	add	hl, bc
+	ld	c, a
+	ld	(_selector), hl
+BB1_7:
+	ld	a, (_step.prev_key_up)
+	ld	d, (ix - 3)
+	bit	0, d
+	jr	z, BB1_10
+	or	a, a
+	jr	nz, BB1_10
+	ld	hl, (_selector+3)
+	ld	a, c
+	ld	bc, -4
+	add	hl, bc
+	ld	c, a
+	ld	(_selector+3), hl
+BB1_10:
+	ld	a, (_step.prev_key_down)
+	ex	de, hl
+	ld	e, iyh
+	ex	de, hl
+	bit	0, l
+	jr	z, BB1_13
+	or	a, a
+	jr	nz, BB1_13
+	ld	hl, (_selector+3)
+	ld	a, c
+	ld	bc, 4
+	add	hl, bc
+	ld	c, a
+	ld	(_selector+3), hl
+BB1_13:
+	ld	hl, _screen
+	ld	(ix - 9), hl
+	ld	a, c
+	ld	(_step.prev_key_left), a
+	ld	a, e
+	ld	(_step.prev_key_right), a
+	ld	a, d
+	ld	(_step.prev_key_up), a
+	ld	a, iyh
+	ld	(_step.prev_key_down), a
+	ld	hl, -720878
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	pop	de
+	ld	a, l
+	bit	7, a
+	jr	z, BB1_15
+	ld	hl, (_selector+3)
+	ld	bc, 4
+	call	__idivs
+	push	hl
+	pop	de
+	ld	hl, (_selector)
+	call	__idivs
+	push	hl
+	pop	iy
+	ld	bc, 80
+	ex	de, hl
+	call	__imulu
+	push	hl
+	pop	de
+	ld	hl, _screen
+	add	hl, de
+	lea	de, iy
+	add	hl, de
+	ld	(hl), 1
+	ld	iy, (_increment)
+	ld	bc, 6
+	lea	hl, iy
+	call	__imulu
+	push	hl
+	pop	de
+	ld	hl, _start_cells
+	add	hl, de
+	ex	de, hl
+	ld	hl, _selector
+	ldir
+	inc	iy
+	ld	(_increment), iy
+BB1_15:
+	ld.sis	bc, 1
+	ld	hl, -720878
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	pop	de
+	ld	a, l
+	bit	6, a
+	jr	z, BB1_17
+	ld	hl, (_increment)
+	dec	hl
+	ld	(_increment), hl
+	ld	bc, 6
+	call	__imulu
+	push	hl
+	pop	de
+	ld	iy, _start_cells
+	add	iy, de
+	ld	hl, (iy + 3)
+	ld	bc, 4
+	call	__idivs
+	push	hl
+	pop	de
+	ld	hl, (iy)
+	call	__idivs
+	push	hl
+	pop	iy
+	ld	bc, 80
+	ex	de, hl
+	call	__imulu
+	ld.sis	bc, 1
+	push	hl
+	pop	de
+	ld	hl, _screen
+	add	hl, de
+	lea	de, iy
+	add	hl, de
+	ld	(hl), b
+BB1_17:
+	ld	hl, -720868
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	pop	de
+	call	__sand
+	bit	0, l
+	ld	hl, (ix - 6)
+	jr	z, BB1_24
+	call	_play
+	ld	bc, 60
+	ld	de, 0
+	push	de
+	pop	iy
+	lea	hl, iy
+BB1_19:
+	ld	(ix - 3), hl
+	or	a, a
+	sbc	hl, bc
+	lea	bc, iy
+	jr	z, BB1_23
+BB1_20:
+	push	bc
+	pop	hl
+	ld	de, 80
+	or	a, a
+	sbc	hl, de
+	jr	z, BB1_22
+	ld	iy, (ix - 9)
+	add	iy, bc
+	ld	(iy), 0
+	ld	de, 0
+	push	de
+	pop	iy
+	inc	bc
+	jr	BB1_20
+BB1_22:
+	ld	hl, (ix - 3)
+	inc	hl
+	lea	de, iy
+	ld	iy, (ix - 9)
+	lea	iy, iy + 80
+	ld	(ix - 9), iy
+	push	de
+	pop	iy
+	ld	bc, 60
+	jr	BB1_19
+BB1_23:
+	ld	(_increment), iy
+	ld	(_increment2), iy
+	ld	hl, (ix - 6)
+BB1_24:
+	ld	a, l
+	or	a, a
+	jr	z, BB1_26
+	ld	a, 0
+	jr	BB1_27
+BB1_26:
+	ld	a, -1
+BB1_27:
+	ld	sp, ix
+	pop	ix
+	ret
+	section	.text,"ax",@progbits
+
+	section	.text,"ax",@progbits
+	public	_draw
+_draw:
+	ld	hl, -6
+	call	__frameset
+	ld	hl, _start_cells
+	ld	(ix - 3), hl
+	or	a, a
+	sbc	hl, hl
+	push	hl
+	call	_gfx_FillScreen
+	pop	hl
+	ld	hl, 2
+	push	hl
+	call	_gfx_SetColor
+	ld	bc, 0
+	pop	hl
+BB2_1:
+	ld	de, (_increment)
+	push	bc
+	pop	hl
+	or	a, a
+	sbc	hl, de
+	call	pe, __setflag
+	jp	p, BB2_3
+	ld	iy, (ix - 3)
+	ld	(ix - 3), iy
+	ld	hl, (iy)
+	ld	de, (iy + 3)
+	ld	(ix - 6), bc
+	ld	bc, 4
+	push	bc
+	push	bc
+	push	de
+	push	hl
+	call	_gfx_FillRectangle
+	ld	bc, (ix - 6)
+	pop	hl
+	pop	hl
+	pop	hl
+	pop	hl
+	inc	bc
+	ld	iy, (ix - 3)
+	lea	iy, iy + 6
+	ld	(ix - 3), iy
+	jr	BB2_1
+BB2_3:
+	ld	hl, 1
+	push	hl
+	call	_gfx_SetColor
+	pop	hl
+	ld	hl, (_selector)
+	ld	de, (_selector+3)
+	ld	bc, 4
+	push	bc
+	push	bc
+	push	de
+	push	hl
+	call	_gfx_FillRectangle
+	ld	sp, ix
+	pop	ix
+	ret
+	section	.text,"ax",@progbits
+
+	section	.text,"ax",@progbits
+	public	_play
+_play:
+	ld	hl, -18
+	call	__frameset
+BB3_1:
+	ld	hl, -720870
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, e
+	ld	h, d
+	pop	de
+	ld	a, l
+	bit	6, a
+	jp	nz, BB3_20
+	ld	bc, 0
+	ld	(_increment2), bc
+	ld	de, _screen
+	push	de
+	pop	iy
+	ld	(ix - 9), bc
+BB3_3:
+	push	bc
+	pop	hl
+	ld	de, 60
+	or	a, a
+	sbc	hl, de
+	jp	z, BB3_14
+	ld	(ix - 18), bc
+	inc	bc
+	ld	(ix - 12), bc
+	or	a, a
+	sbc	hl, hl
+	ld	(ix - 3), hl
+BB3_5:
+	ld	de, (ix - 3)
+	push	de
+	pop	hl
+	ld	bc, 80
+	or	a, a
+	sbc	hl, bc
+	jp	z, BB3_13
+	ld	(ix - 6), iy
+	ld	iy, (ix - 6)
+	add	iy, de
+	ld	a, (iy - 79)
+	add	a, (iy - 80)
+	add	a, (iy + 1)
+	add	a, (iy + 81)
+	add	a, (iy + 80)
+	add	a, (iy + 79)
+	add	a, (iy - 1)
+	ld	bc, 0
+	push	bc
+	pop	hl
+	ld	l, a
+	ld	c, (iy - 81)
+	add	hl, bc
+	ld	a, (iy)
+	ld	iy, (ix - 6)
+	ld	(ix - 15), hl
+	ld	bc, -4
+	add	hl, bc
+	bit	0, a
+	push	de
+	pop	bc
+	inc	bc
+	ld	(ix - 3), bc
+	jr	z, BB3_8
+	ld	bc, -2
+	or	a, a
+	sbc	hl, bc
+	ld	l, 0
+	ld	c, l
+	jr	c, BB3_12
+BB3_8:
+	ld	hl, (ix - 15)
+	ld	bc, 510
+	call	__iand
+	bit	0, a
+	jr	z, BB3_10
+	ld	bc, 2
+	or	a, a
+	sbc	hl, bc
+	ld	l, 1
+	ld	c, l
+	jr	z, BB3_12
+BB3_10:
+	bit	0, a
+	jr	nz, BB3_5
+	ld	hl, (ix - 15)
+	ld	bc, 3
+	or	a, a
+	sbc	hl, bc
+	ld	a, 1
+	ld	c, a
+	jp	nz, BB3_5
+BB3_12:
+	ld	a, c
+	ld	hl, (ix - 9)
+	ld	bc, 7
+	call	__imulu
+	push	hl
+	pop	bc
+	ld	iy, _cells
+	add	iy, bc
+	ld	(iy), de
+	ld	hl, (ix - 18)
+	ld	(iy + 3), hl
+	ld	(iy + 6), a
+	ld	iy, (ix - 6)
+	ld	hl, (ix - 9)
+	inc	hl
+	ld	(ix - 9), hl
+	ld	(_increment2), hl
+	jp	BB3_5
+BB3_13:
+	lea	iy, iy + 80
+	ld	bc, (ix - 12)
+	jp	BB3_3
+BB3_14:
+	ld	hl, 250
+	push	hl
+	call	_delay
+	pop	hl
+	or	a, a
+	sbc	hl, hl
+	push	hl
+	call	_gfx_FillScreen
+	pop	hl
+	ld	hl, _cells+3
+	push	hl
+	pop	iy
+	ld	bc, 0
+BB3_15:
+	ld	de, (_increment2)
+	push	bc
+	pop	hl
+	or	a, a
+	sbc	hl, de
+	call	pe, __setflag
+	jp	p, BB3_19
+	ld	(ix - 6), bc
+	ld	(ix - 3), iy
+	ld	a, (iy + 3)
+	xor	a, 1
+	bit	0, a
+	ld	l, 0
+	jp	nz, BB3_18
+	ld	l, 2
+BB3_18:
+	xor	a, 1
+	and	a, 1
+	ld	(ix - 9), a
+	push	hl
+	call	_gfx_SetColor
+	pop	hl
+	ld	iy, (ix - 3)
+	ld	hl, (iy - 3)
+	ld	c, 2
+	call	__ishl
+	push	hl
+	pop	de
+	ld	hl, (ix - 3)
+	ld	hl, (hl)
+	call	__ishl
+	ld	bc, 4
+	push	bc
+	push	bc
+	push	hl
+	push	de
+	call	_gfx_FillRectangle
+	ld	iy, (ix - 3)
+	pop	hl
+	pop	hl
+	pop	hl
+	pop	hl
+	ld	hl, (iy)
+	ld	de, (iy - 3)
+	ld	bc, 80
+	call	__imulu
+	push	hl
+	pop	bc
+	ld	hl, _screen
+	add	hl, bc
+	add	hl, de
+	ld	a, (ix - 9)
+	ld	(hl), a
+	ld	bc, (ix - 6)
+	inc	bc
+	lea	iy, iy + 7
+	jp	BB3_15
+BB3_19:
+	call	_gfx_SwapDraw
+	call	_kb_Scan
+	jp	BB3_1
+BB3_20:
+	ld	sp, ix
+	pop	ix
+	ret
+	section	.text,"ax",@progbits
+
+	section	.data,"aw",@progbits
+	public	_selector
+_selector:
+	dl	160
+	dl	120
 
 	section	.data,"aw",@progbits
 	public	_global_palette
 _global_palette:
-	db	"J©"
+	db	"­µJ)", 0, 0
+
+	section	.bss,"aw",@nobits
+	public	_increment2
+_increment2:
+	rb	3
+
+	section	.bss,"aw",@nobits
+	public	_increment
+_increment:
+	rb	3
+
+	section	.bss,"aw",@nobits
+	private	_step.prev_key_left
+_step.prev_key_left:
+	rb	1
+
+	section	.bss,"aw",@nobits
+	private	_step.prev_key_right
+_step.prev_key_right:
+	rb	1
+
+	section	.bss,"aw",@nobits
+	private	_step.prev_key_up
+_step.prev_key_up:
+	rb	1
+
+	section	.bss,"aw",@nobits
+	private	_step.prev_key_down
+_step.prev_key_down:
+	rb	1
+
+	section	.bss,"aw",@nobits
+	public	_screen
+_screen:
+	rb	4800
+
+	section	.bss,"aw",@nobits
+	public	_start_cells
+_start_cells:
+	rb	300
+
+	section	.bss,"aw",@nobits
+	public	_cells
+_cells:
+	rb	700
 
 	ident	"clang version 15.0.0 (https://github.com/jacobly0/llvm-project 5f8512f22751066573aa48ac848a6d2195838ac3)"
 	ident	"clang version 15.0.0 (https://github.com/jacobly0/llvm-project 5f8512f22751066573aa48ac848a6d2195838ac3)"
-	extern	_begin
 	extern	__Unwind_SjLj_Register
-	extern	__Unwind_SjLj_Unregister
+	extern	__frameset
 	extern	_gfx_Begin
-	extern	_draw
-	extern	_end
-	extern	_step
-	extern	_gfx_End
+	extern	_kb_Scan
+	extern	_gfx_SetPalette
+	extern	__sand
 	extern	_gfx_SwapDraw
+	extern	__ishl
+	extern	__idivs
 	extern	_gfx_SetDraw
+	extern	__setflag
+	extern	_gfx_FillScreen
+	extern	__Unwind_SjLj_Unregister
+	extern	__iand
+	extern	_gfx_FillRectangle
+	extern	__imulu
+	extern	_gfx_SetColor
+	extern	_delay
+	extern	_gfx_End
+	extern	__bshru
