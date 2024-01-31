@@ -80,7 +80,7 @@ bool step(){
         increment++;
     }
 
-    if (kb_Data[1] & kb_Mode){
+    if ((kb_Data[1] & kb_Mode) && increment > 0){
         increment--;
         screen[start_cells[increment].y / 4][start_cells[increment].x / 4].alive = false;
     }
